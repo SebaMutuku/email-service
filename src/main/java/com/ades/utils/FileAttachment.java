@@ -25,7 +25,12 @@ public class FileAttachment {
                 }
             }
             if (file.isFile()) {
-                PDDocument pdfDoc = PDDocument.load(file);
+                PDDocument pdfDoc;
+                if (password != null) {
+                    pdfDoc = PDDocument.load(file, password);
+                } else {
+                    pdfDoc = PDDocument.load(file);
+                }
                 AccessPermission permission = new AccessPermission();
                 permission.setCanPrint(true);
                 permission.setCanModify(true);
