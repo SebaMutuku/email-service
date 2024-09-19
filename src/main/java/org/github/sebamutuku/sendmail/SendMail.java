@@ -1,12 +1,11 @@
-package com.ades.sendmail;
+package org.github.sebamutuku.sendmail;
 
 
-import com.ades.utils.FileAttachment;
-import com.ades.utils.MailParams;
+import org.github.sebamutuku.utils.FileAttachment;
+import org.github.sebamutuku.utils.MailParams;
 import java.io.File;
 import java.util.Date;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -59,7 +58,7 @@ public class SendMail {
 
             if (mailParams.fileContent != null && mailParams.fileName != null) {
 
-                File file = FileAttachment.buildAPDFFromByteArray(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
+                File file = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
                 Multipart multipart = new MimeMultipart();
                 if (file.isFile() && file.exists()) {
                     MimeBodyPart attachmentPart = new MimeBodyPart();
