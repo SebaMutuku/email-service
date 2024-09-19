@@ -6,6 +6,7 @@ import com.ades.utils.MailParams;
 import java.io.File;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -24,7 +25,6 @@ public class SendMail {
     private final String emailUsername;
     private final String emailPassword;
     Properties props;
-
     public SendMail(String host, int port, String emailUsername, String emailPassword, String isTLSenabled, String isDebugEnabled, String mailAuth) {
         this.emailUsername = emailUsername;
         this.emailPassword = emailPassword;
