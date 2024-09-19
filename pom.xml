@@ -4,7 +4,7 @@
 
     <groupId>io.github.sebamutuku</groupId>
     <artifactId>email-service</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>maven-plugin</packaging>
     <name>EmailService Maven Plugin</name>
     <url>http://maven.apache.org</url>
@@ -25,9 +25,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/SebaMutuku/EmailService</connection>
-        <developerConnection>scm:git:ssh://git@github.com:SebaMutuku/EmailService</developerConnection>
-        <url>https://github.com/SebaMutuku/EmailService</url>
+        <connection>scm:git:git@github.com:SebaMutuku/email-service.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:SebaMutuku/email-service.git</developerConnection>
+        <url>https://github.com/SebaMutuku/email-service.git</url>
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -128,7 +128,6 @@
                         </goals>
                         <configuration>
                             <keyname>0x77E6EBF8</keyname>
-                            <passphraseServerId>0x77E6EBF8</passphraseServerId>
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
