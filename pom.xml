@@ -127,8 +127,8 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <keyname>0x20E4B967</keyname>
-                            <passphraseServerId>0x20E4B967</passphraseServerId>
+                            <keyname>0x77E6EBF8</keyname>
+                            <passphraseServerId>0x77E6EBF8</passphraseServerId>
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
