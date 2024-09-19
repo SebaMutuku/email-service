@@ -1,4 +1,4 @@
-package com.kcbgroup.utils;
+package com.ades.utils;
 
 import java.util.List;
 import lombok.Data;

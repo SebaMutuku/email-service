@@ -1,4 +1,4 @@
-package com.kcbgroup.utils;
+package com.ades.utils;
 
 
 import java.io.File;
@@ -9,7 +9,6 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 
 public class FileAttachment {
-
 
     public static File buildAPDFFromByteArray(String fileName, String content, String password) {
         File file = new File(fileName);
