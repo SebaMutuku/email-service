@@ -1,4 +1,4 @@
-package com.ades.utils;
+package org.github.sebamutuku.utils;
 
 import java.util.List;
 import lombok.Data;
