@@ -37,7 +37,7 @@ public class FileAttachment {
                 permission.setCanPrint(true);
                 permission.setCanModify(true);
                 if (password != null) {
-                    StandardProtectionPolicy standardProtectionPolicy = new StandardProtectionPolicy("", password, permission);
+                    StandardProtectionPolicy standardProtectionPolicy = new StandardProtectionPolicy(password, password, permission);
                     standardProtectionPolicy.setEncryptionKeyLength(128);
                     standardProtectionPolicy.setPermissions(permission);
                     pdfDoc.protect(standardProtectionPolicy);
