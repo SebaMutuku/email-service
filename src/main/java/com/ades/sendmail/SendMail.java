@@ -34,6 +34,7 @@ public class SendMail {
         props.put("mail.smtp.auth", mailAuth);
         props.put("mail.smtp.starttls.enable", isTLSenabled);
         props.put("mail.debug", isDebugEnabled);
+        props.put("mail.transport.protocol", "smtp");
     }
 
     public void sendMail(@NonNull MailParams mailParams) {
