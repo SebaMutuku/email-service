@@ -1,8 +1,6 @@
 package org.github.sebamutuku.sendmail;
 
 
-import org.github.sebamutuku.utils.FileAttachment;
-import org.github.sebamutuku.utils.MailParams;
 import java.io.File;
 import java.util.Date;
 import java.util.Properties;
@@ -18,12 +16,15 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import lombok.NonNull;
+import org.github.sebamutuku.utils.FileAttachment;
+import org.github.sebamutuku.utils.MailParams;
 
 
 public class SendMail {
     private final String emailUsername;
     private final String emailPassword;
     Properties props;
+
     public SendMail(String host, int port, String emailUsername, String emailPassword, String isTLSenabled, String isDebugEnabled, String mailAuth) {
         this.emailUsername = emailUsername;
         this.emailPassword = emailPassword;
@@ -38,6 +39,7 @@ public class SendMail {
 
     public void sendMail(@NonNull MailParams mailParams) {
         MimeMessage message;
+        File pdfFile = null;
         try {
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
@@ -58,13 +60,13 @@ public class SendMail {
 
             if (mailParams.fileContent != null && mailParams.fileName != null) {
 
-                File file = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
+                pdfFile = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
                 Multipart multipart = new MimeMultipart();
-                if (file.isFile() && file.exists()) {
+                if (pdfFile.isFile() && pdfFile.exists()) {
                     MimeBodyPart attachmentPart = new MimeBodyPart();
-                    attachmentPart.attachFile(file);
+                    attachmentPart.attachFile(pdfFile);
                     multipart.addBodyPart(attachmentPart);
-                    System.out.println("Attaching file [" + file.getName() + "]");
+                    System.out.println("Attaching pdfFile [" + pdfFile.getName() + "]");
                 }
                 message.setContent(multipart);
             }
@@ -82,6 +84,11 @@ public class SendMail {
             Transport.send(message);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (pdfFile != null && pdfFile.exists()) {
+                pdfFile.delete();
+                System.out.println("Deleting pdfFile [" + pdfFile.getName() + "]");
+            }
         }
 
     }
