@@ -29,12 +29,12 @@ public class SendMail {
         this.emailUsername = emailUsername;
         this.emailPassword = emailPassword;
         props = new Properties();
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", port);
-        props.put("mail.smtp.auth", mailAuth);
-        props.put("mail.smtp.starttls.enable", isTLSenabled);
-        props.put("mail.debug", isDebugEnabled);
-        props.put("mail.transport.protocol", "smtp");
+        props.setProperty("mail.smtp.host", host);
+        props.setProperty("mail.smtp.port", String.valueOf(port));
+        props.setProperty("mail.smtp.auth", mailAuth);
+        props.setProperty("mail.smtp.starttls.enable", isTLSenabled);
+        props.setProperty("mail.debug", isDebugEnabled);
+        props.setProperty("mail.transport.protocol", "smtp");
     }
 
     public void sendMail(@NonNull MailParams mailParams) {
