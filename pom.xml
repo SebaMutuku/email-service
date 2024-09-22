@@ -4,7 +4,7 @@
 
     <groupId>io.github.sebamutuku</groupId>
     <artifactId>email-service</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>maven-plugin</packaging>
     <name>EmailService Maven Plugin</name>
     <url>http://maven.apache.org</url>
