@@ -23,11 +23,13 @@ import org.github.sebamutuku.utils.MailParams;
 public class SendMail {
     private final String emailUsername;
     private final String emailPassword;
+    private final boolean authenticationEnabled;
     Properties props;
 
-    public SendMail(String host, int port, String emailUsername, String emailPassword, String isTLSenabled, String isDebugEnabled, String mailAuth) {
+    public SendMail(String host, int port, String emailUsername, String emailPassword, String isTLSenabled, String isDebugEnabled, String mailAuth, boolean authenticationEnabled) {
         this.emailUsername = emailUsername;
         this.emailPassword = emailPassword;
+        this.authenticationEnabled = authenticationEnabled;
         props = new Properties();
         props.setProperty("mail.smtp.host", host);
         props.setProperty("mail.smtp.port", String.valueOf(port));
@@ -41,12 +43,18 @@ public class SendMail {
         MimeMessage message;
         File pdfFile = null;
         try {
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(emailUsername, emailPassword);
-                }
-            });
+            Session session;
+            if (this.authenticationEnabled) {
+                session = Session.getInstance(props, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(emailUsername, emailPassword);
+                    }
+                });
+            } else {
+                session = Session.getInstance(props, new Authenticator() {
+                });
+            }
             message = new MimeMessage(session);
             if (emailUsername.equals(mailParams.from)) {
                 mailParams.from = emailUsername;
