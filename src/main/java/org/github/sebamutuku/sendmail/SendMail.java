@@ -2,6 +2,7 @@ package org.github.sebamutuku.sendmail;
 
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
 import javax.mail.Address;
@@ -63,13 +64,22 @@ public class SendMail {
             message.setFrom(new InternetAddress(mailParams.from));
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(mailParams.to));
             message.setSubject(mailParams.subject);
-            message.setText(mailParams.body);
             message.setSentDate(new Date());
+            Multipart multipart = new MimeMultipart();
 
+            // Add the email body
+            MimeBodyPart textPart = new MimeBodyPart();
+            if (mailParams.body != null) {
+                mailParams.body = mailParams.body.replace("\n", "").replace("\\n", "");
+                if (mailParams.body.contains("html")) {
+                    textPart.setContent(mailParams.body, "text/html");
+                } else textPart.setContent(mailParams.body, "text/plain");
+
+            }
+
+            multipart.addBodyPart(textPart);
             if (mailParams.fileContent != null && mailParams.fileName != null) {
-
                 pdfFile = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
-                Multipart multipart = new MimeMultipart();
                 if (pdfFile.isFile() && pdfFile.exists()) {
                     MimeBodyPart attachmentPart = new MimeBodyPart();
                     attachmentPart.attachFile(pdfFile);
