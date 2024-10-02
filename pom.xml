@@ -4,7 +4,7 @@
 
     <groupId>io.github.sebamutuku</groupId>
     <artifactId>email-service</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <packaging>maven-plugin</packaging>
     <name>EmailService Maven Plugin</name>
     <url>http://maven.apache.org</url>
@@ -68,12 +68,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.6.0</version>
                 <configuration>
-                    <goalPrefix>EmailService</goalPrefix>
+                    <goalPrefix>email-service</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
