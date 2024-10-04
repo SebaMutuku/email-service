@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -65,10 +64,9 @@ public class SendMail {
                 try {
                     return new InternetAddress(email);
                 } catch (AddressException e) {
-                    e.printStackTrace();
-                    return null;
+                    throw new RuntimeException("Failed to parse carbon copies with error [" + e + "]");
                 }
-            }).filter(Objects::nonNull).toArray(InternetAddress[]::new);
+            }).toArray(InternetAddress[]::new);
             message.addRecipients(Message.RecipientType.CC, addresses);
         }
     }
@@ -105,13 +103,16 @@ public class SendMail {
             Address[] address = message.getAllRecipients();
             message.setReplyTo(address);
             Transport.send(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
             if (pdfFile != null && pdfFile.exists()) {
-                pdfFile.delete();
-                System.out.println("Deleting file [" + pdfFile.getName() + "]");
+                String fileName = pdfFile.getName();
+                boolean delete = pdfFile.delete();
+                if (delete) {
+                    System.out.println("Successfully removed file [" + fileName + "]");
+                }
+
             }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send email with error  [" + e + "]");
         }
 
     }
@@ -140,7 +141,7 @@ public class SendMail {
                             multipart.addBodyPart(attachmentPart);
                             System.out.println("Attaching file [" + file.getName() + "]");
                         } catch (MessagingException e) {
-                            System.err.println("Failed to attach file: " + file.getName());
+                            throw new RuntimeException("Failed to send email with error [" + e + "]");
                         }
                     });
                 }
@@ -151,19 +152,21 @@ public class SendMail {
             Address[] address = message.getAllRecipients();
             message.setReplyTo(address);
             Transport.send(message);
-        } catch (Exception e) {
-            System.err.println("Failed to send email: " + e.getMessage());
-        } finally {
             if (deleteFilesAfterSending && filesDirectory != null && !filesDirectory.isEmpty()) {
                 File directory = new File(filesDirectory);
                 File[] files = directory.listFiles();
                 if (files != null) {
                     Arrays.stream(files).filter(File::isFile).forEach(file -> {
-                        file.delete();
-                        System.out.println("Deleting file [" + file.getName() + "]");
+                        String fileName = file.getName();
+                        boolean delete = file.delete();
+                        if (delete) {
+                            System.out.println("Successfully removed file [" + fileName + "]");
+                        }
                     });
                 }
             }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send email with error  [" + e + "]");
         }
 
     }
