@@ -22,11 +22,11 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import lombok.NonNull;
-import lombok.SneakyThrows;
+import org.github.sebamutuku.base.BaseMail;
 import org.github.sebamutuku.utils.FileAttachment;
 import org.github.sebamutuku.utils.MailParams;
 
-public class SendMail {
+public class SendMail extends BaseMail {
     private final String emailUsername;
     private final String emailPassword;
     private final boolean authenticationEnabled;
@@ -46,7 +46,7 @@ public class SendMail {
     }
 
 
-    private static MimeBodyPart addMessageBody(String mailParams) throws MessagingException {
+    public static MimeBodyPart addMessageBody(String mailParams) throws MessagingException {
         MimeBodyPart textPart = new MimeBodyPart();
         if (mailParams != null) {
             mailParams = mailParams.replace("\n", "").replace("\\n", "");
@@ -58,7 +58,7 @@ public class SendMail {
         return textPart;
     }
 
-    private static void appendCcs(List<String> mailParams, MimeMessage message) throws MessagingException {
+    public static void appendCcs(List<String> mailParams, MimeMessage message) throws MessagingException {
         if (mailParams != null && !mailParams.isEmpty()) {
             InternetAddress[] addresses = mailParams.stream().map(email -> {
                 try {
@@ -71,6 +71,7 @@ public class SendMail {
         }
     }
 
+    @Override
     public void sendMail(@NonNull MailParams mailParams) {
         MimeMessage message;
         File pdfFile = null;
@@ -117,7 +118,7 @@ public class SendMail {
 
     }
 
-    @SneakyThrows
+    @Override
     public void sendMail(@NonNull String from, String filesDirectory, String recipient, String subject, String body, List<String> cc, boolean deleteFilesAfterSending) {
         MimeMessage message;
         try {
@@ -172,7 +173,7 @@ public class SendMail {
     }
 
 
-    private MimeMessage authenticateViaMime() {
+    public MimeMessage authenticateViaMime() {
         MimeMessage message;
         Session session;
         if (this.authenticationEnabled) {
@@ -183,8 +184,7 @@ public class SendMail {
                 }
             });
         } else {
-            session = Session.getInstance(props, new Authenticator() {
-            });
+            session = Session.getInstance(props);
         }
         message = new MimeMessage(session);
         return message;
