@@ -12,7 +12,7 @@ public class FileAttachment {
 
     public static File createPDFFileFromBase64String(String fileName, String content, String password, String directory) {
         File file = null;
-        if (directory != null) {
+        if (directory != null && !directory.isEmpty()) {
             boolean directoryCreated = new File(directory + File.separator).mkdir();
             if (!directoryCreated) {
                 file = new File(directoryCreated + File.separator + fileName);
