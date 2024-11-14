@@ -16,5 +16,6 @@ public class MailParams {
     public String encodingPasscode;
     public String fileContent;
     public String fileName;
+    public String directory = null;
 
 }
