@@ -91,7 +91,7 @@ public class SendMail extends BaseMail {
 
             multipart.addBodyPart(textPart);
             if (mailParams.fileContent != null && mailParams.fileName != null) {
-                pdfFile = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
+                pdfFile = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode,mailParams.directory);
                 if (pdfFile.isFile() && pdfFile.exists()) {
                     MimeBodyPart attachmentPart = new MimeBodyPart();
                     attachmentPart.attachFile(pdfFile);
