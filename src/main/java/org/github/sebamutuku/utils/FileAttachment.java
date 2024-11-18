@@ -10,18 +10,8 @@ import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 
 public class FileAttachment {
 
-    public static File createPDFFileFromBase64String(String fileName, String content, String password, String directory) {
-        File file = null;
-        if (directory != null && !directory.isEmpty()) {
-            boolean directoryCreated = new File(directory + File.separator).mkdir();
-            if (!directoryCreated) {
-                file = new File(directoryCreated + File.separator + fileName);
-
-            }
-        } else {
-            file = new File(fileName);
-        }
-        assert file != null;
+    public static File createPDFFileFromBase64String(String fileName, String content, String password) {
+        File file = new File(fileName);
         System.out.println("File saved at path [" + file.getAbsolutePath() + "]");
         file.setWritable(true, false);
         file.setReadable(true, false);
@@ -37,7 +27,7 @@ public class FileAttachment {
                     fileOutputStream.write(bytes);
                     fileOutputStream.flush();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.err.println("Failed with error [" + e + "]");
                 }
             }
             if (file.isFile()) {
@@ -61,7 +51,7 @@ public class FileAttachment {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed with error [" + e + "]");
         }
         return file;
     }
