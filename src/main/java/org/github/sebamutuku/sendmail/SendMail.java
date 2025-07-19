@@ -1,193 +1,250 @@
 package org.github.sebamutuku.sendmail;
 
-
+import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
+import jakarta.mail.Address;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
-import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
-import javax.mail.Address;
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import lombok.NonNull;
 import org.github.sebamutuku.base.BaseMail;
 import org.github.sebamutuku.utils.FileAttachment;
 import org.github.sebamutuku.utils.MailParams;
 
-public class SendMail extends BaseMail {
+public final class SendMail extends BaseMail {
+    private static final String SMTP_PROTOCOL = "smtp";
+    private static final String TEXT_PLAIN = "text/plain";
+    private static final String TEXT_HTML = "text/html";
+
     private final String emailUsername;
     private final String emailPassword;
     private final boolean authenticationEnabled;
-    Properties props;
+    private final Properties mailProperties;
 
     public SendMail(String host, int port, String emailUsername, String emailPassword, String isTLSenabled, String isDebugEnabled, String mailAuth, boolean authenticationEnabled) {
-        this.emailUsername = emailUsername;
-        this.emailPassword = emailPassword;
+        this.emailUsername = Objects.requireNonNull(emailUsername, "Email username cannot be null");
+        this.emailPassword = Objects.requireNonNull(emailPassword, "Email password cannot be null");
         this.authenticationEnabled = authenticationEnabled;
-        props = new Properties();
-        props.setProperty("mail.smtp.host", host);
-        props.setProperty("mail.smtp.port", String.valueOf(port));
-        props.setProperty("mail.smtp.auth", mailAuth);
-        props.setProperty("mail.smtp.starttls.enable", isTLSenabled);
-        props.setProperty("mail.debug", isDebugEnabled);
-        props.setProperty("mail.transport.protocol", "smtp");
-    }
 
-
-    public static MimeBodyPart addMessageBody(String mailParams) throws MessagingException {
-        MimeBodyPart textPart = new MimeBodyPart();
-        if (mailParams != null) {
-            mailParams = mailParams.replace("\n", "").replace("\\n", "");
-            if (mailParams.contains("html")) {
-                textPart.setContent(mailParams, "text/html");
-            } else textPart.setContent(mailParams, "text/plain");
-
-        }
-        return textPart;
-    }
-
-    public static void appendCcs(List<String> mailParams, MimeMessage message) throws MessagingException {
-        if (mailParams != null && !mailParams.isEmpty()) {
-            InternetAddress[] addresses = mailParams.stream().map(email -> {
-                try {
-                    return new InternetAddress(email);
-                } catch (AddressException e) {
-                    throw new RuntimeException("Failed to parse carbon copies with error [" + e + "]");
-                }
-            }).toArray(InternetAddress[]::new);
-            message.addRecipients(Message.RecipientType.CC, addresses);
-        }
+        this.mailProperties = new Properties();
+        mailProperties.setProperty("mail.smtp.host", Objects.requireNonNull(host, "SMTP host cannot be null"));
+        mailProperties.setProperty("mail.smtp.port", String.valueOf(port));
+        mailProperties.setProperty("mail.smtp.auth", Objects.requireNonNull(mailAuth, "Mail auth cannot be null"));
+        mailProperties.setProperty("mail.smtp.starttls.enable", Objects.requireNonNull(isTLSenabled, "TLS setting cannot be null"));
+        mailProperties.setProperty("mail.debug", Objects.requireNonNull(isDebugEnabled, "Debug setting cannot be null"));
+        mailProperties.setProperty("mail.transport.protocol", SMTP_PROTOCOL);
     }
 
     @Override
     public void sendMail(@NonNull MailParams mailParams) {
-        MimeMessage message;
+        validateMailParams(mailParams);
+
         File pdfFile = null;
         try {
-            message = authenticateViaMime();
-            if (emailUsername.equals(mailParams.from)) {
-                mailParams.from = emailUsername;
-            }
-            message.setFrom(new InternetAddress(mailParams.from));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(mailParams.to));
-            message.setSubject(mailParams.subject);
-            message.setSentDate(new Date());
+            MimeMessage message = createAuthenticatedMessage();
+            configureBasicMessageProperties(message, mailParams);
+
             Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(createTextBodyPart(mailParams.body));
 
-            // Add the email body
-            MimeBodyPart textPart = addMessageBody(mailParams.body);
-
-            multipart.addBodyPart(textPart);
             if (mailParams.fileContent != null && mailParams.fileName != null) {
-                pdfFile = FileAttachment.createPDFFileFromBase64String(mailParams.fileName, mailParams.fileContent, mailParams.encodingPasscode);
-                if (pdfFile.isFile() && pdfFile.exists()) {
-                    MimeBodyPart attachmentPart = new MimeBodyPart();
-                    attachmentPart.attachFile(pdfFile);
-                    multipart.addBodyPart(attachmentPart);
-                    System.out.println("Attaching file [" + pdfFile.getName() + "]");
-                }
-                message.setContent(multipart);
+                pdfFile = handleAttachment(mailParams, multipart);
             }
-            appendCcs(mailParams.cc, message);
-            Address[] address = message.getAllRecipients();
-            message.setReplyTo(address);
+
+            message.setContent(multipart);
+            addCcRecipients(message, mailParams.cc);
+            setReplyToRecipients(message);
+
             Transport.send(message);
-            if (pdfFile != null && pdfFile.exists()) {
-                String fileName = pdfFile.getName();
-                boolean delete = pdfFile.delete();
-                if (delete) {
-                    System.out.println("Successfully removed file [" + fileName + "]");
-                }
+            cleanUpTempFile(pdfFile);
 
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send email with error  [" + e + "]");
+        } catch (MessagingException | IOException e) {
+            throw new EmailException("Failed to send email", e);
         }
-
     }
 
     @Override
     public void sendMail(@NonNull String from, String filesDirectory, String recipient, String subject, String body, List<String> cc, boolean deleteFilesAfterSending) {
-        MimeMessage message;
+        validateParameters(from, recipient, subject, body);
+
         try {
-            message = authenticateViaMime();
-            message.setFrom(new InternetAddress(from));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
-            message.setSubject(subject);
-            message.setSentDate(new Date());
+            MimeMessage message = createAuthenticatedMessage();
+            configureBasicMessageProperties(message, from, recipient, subject);
+
             Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(createTextBodyPart(body));
 
-            multipart.addBodyPart(addMessageBody(body));
-            if (filesDirectory != null && !filesDirectory.isEmpty()) {
-                File directory = new File(filesDirectory);
-                File[] files = directory.listFiles();
-                if (files != null) {
-                    Arrays.stream(files).filter(File::isFile).forEach(file -> {
-                        try {
-                            MimeBodyPart attachmentPart = new MimeBodyPart();
-                            attachmentPart.setDataHandler(new DataHandler(new FileDataSource(file)));
-                            attachmentPart.setFileName(file.getName());
-                            multipart.addBodyPart(attachmentPart);
-                            System.out.println("Attaching file [" + file.getName() + "]");
-                        } catch (MessagingException e) {
-                            throw new RuntimeException("Failed to send email with error [" + e + "]");
-                        }
-                    });
-                }
-                message.setContent(multipart);
+            if (filesDirectory != null) {
+                handleDirectoryAttachments(filesDirectory, multipart, deleteFilesAfterSending);
             }
 
-            appendCcs(cc, message);
-            Address[] address = message.getAllRecipients();
-            message.setReplyTo(address);
+            message.setContent(multipart);
+            addCcRecipients(message, cc);
+            setReplyToRecipients(message);
+
             Transport.send(message);
-            if (deleteFilesAfterSending && filesDirectory != null && !filesDirectory.isEmpty()) {
-                File directory = new File(filesDirectory);
-                File[] files = directory.listFiles();
-                if (files != null) {
-                    Arrays.stream(files).filter(File::isFile).forEach(file -> {
-                        String fileName = file.getName();
-                        boolean delete = file.delete();
-                        if (delete) {
-                            System.out.println("Successfully removed file [" + fileName + "]");
-                        }
-                    });
+        } catch (MessagingException | IOException e) {
+            throw new EmailException("Failed to send email", e);
+        }
+    }
+
+    private MimeMessage createAuthenticatedMessage() {
+        Session session = authenticationEnabled ? Session.getInstance(mailProperties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(emailUsername, emailPassword);
+            }
+        }) : Session.getInstance(mailProperties);
+
+        return new MimeMessage(session);
+    }
+
+    private void configureBasicMessageProperties(MimeMessage message, MailParams params) throws MessagingException {
+        String from = params.from.equals(emailUsername) ? emailUsername : params.from;
+        message.setFrom(new InternetAddress(from));
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(params.to));
+        message.setSubject(params.subject);
+        message.setSentDate(new Date());
+    }
+
+    private void configureBasicMessageProperties(MimeMessage message, String from, String recipient, String subject) throws MessagingException {
+        message.setFrom(new InternetAddress(from));
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+        message.setSubject(subject);
+        message.setSentDate(new Date());
+    }
+
+    private MimeBodyPart createTextBodyPart(String content) throws MessagingException {
+        MimeBodyPart textPart = new MimeBodyPart();
+        if (content != null) {
+            String cleanedContent = content.replace("\n", "").replace("\\n", "");
+            String contentType = cleanedContent.contains("html") ? TEXT_HTML : TEXT_PLAIN;
+            textPart.setContent(cleanedContent, contentType);
+        }
+        return textPart;
+    }
+
+    private File handleAttachment(MailParams params, Multipart multipart) throws MessagingException, IOException {
+        File pdfFile = FileAttachment.createPDFFileFromBase64String(params.fileName, params.fileContent, params.encodingPasscode);
+
+        if (pdfFile.exists()) {
+            MimeBodyPart attachmentPart = new MimeBodyPart();
+            attachmentPart.attachFile(pdfFile);
+            multipart.addBodyPart(attachmentPart);
+            System.out.println("Attached file: " + pdfFile.getName());
+        }
+        return pdfFile;
+    }
+
+    private void handleDirectoryAttachments(String directoryPath, Multipart multipart, boolean deleteAfter) throws MessagingException, IOException {
+        File directory = new File(directoryPath);
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    attachFile(multipart, file);
+                    if (deleteAfter) {
+                        deleteFileAfterSending(file);
+                    }
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send email with error  [" + e + "]");
         }
-
     }
 
+    private void attachFile(Multipart multipart, File file) throws MessagingException {
+        MimeBodyPart attachmentPart = new MimeBodyPart();
+        attachmentPart.setDataHandler(new DataHandler(new FileDataSource(file)));
+        attachmentPart.setFileName(file.getName());
+        multipart.addBodyPart(attachmentPart);
+        System.out.println("Attached file: " + file.getName());
+    }
 
-    public MimeMessage authenticateViaMime() {
-        MimeMessage message;
-        Session session;
-        if (this.authenticationEnabled) {
-            session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(emailUsername, emailPassword);
+    private void addCcRecipients(MimeMessage message, List<String> ccAddresses) throws MessagingException {
+        if (ccAddresses != null && !ccAddresses.isEmpty()) {
+            InternetAddress[] addresses = ccAddresses.stream().filter(Objects::nonNull).map(email -> {
+                try {
+                    return new InternetAddress(email.trim());
+                } catch (AddressException e) {
+                    throw new EmailAddressException("Invalid CC email address: " + email, e);
                 }
-            });
-        } else {
-            session = Session.getInstance(props);
+            }).toArray(InternetAddress[]::new);
+
+            if (addresses.length > 0) {
+                message.addRecipients(Message.RecipientType.CC, addresses);
+            }
         }
-        message = new MimeMessage(session);
-        return message;
     }
 
+    private void setReplyToRecipients(MimeMessage message) throws MessagingException {
+        Address[] recipients = message.getAllRecipients();
+        if (recipients != null && recipients.length > 0) {
+            message.setReplyTo(recipients);
+        }
+    }
+
+    private void cleanUpTempFile(File file) {
+        if (file != null && file.exists()) {
+            if (file.delete()) {
+                System.out.println("Deleted temporary file: " + file.getName());
+            } else {
+                System.err.println("Failed to delete temporary file: " + file.getName());
+            }
+        }
+    }
+
+    private void deleteFileAfterSending(File file) {
+        if (file.delete()) {
+            System.out.println("Deleted file after sending: " + file.getName());
+        } else {
+            System.err.println("Failed to delete file after sending: " + file.getName());
+        }
+    }
+
+    private void validateMailParams(MailParams params) {
+        Objects.requireNonNull(params, "MailParams cannot be null");
+        Objects.requireNonNull(params.to, "Recipient address cannot be null");
+        Objects.requireNonNull(params.subject, "Email subject cannot be null");
+
+        if (params.to.trim().isEmpty()) {
+            throw new IllegalArgumentException("Recipient address cannot be empty");
+        }
+    }
+
+    private void validateParameters(String from, String recipient, String subject, String body) {
+        Objects.requireNonNull(from, "From address cannot be null");
+        Objects.requireNonNull(recipient, "Recipient address cannot be null");
+        Objects.requireNonNull(subject, "Email subject cannot be null");
+
+        if (from.trim().isEmpty() || recipient.trim().isEmpty()) {
+            throw new IllegalArgumentException("Email addresses cannot be empty");
+        }
+    }
+
+    // Custom exception classes
+    public static class EmailException extends RuntimeException {
+        public EmailException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    public static class EmailAddressException extends RuntimeException {
+        public EmailAddressException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }
