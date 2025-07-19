@@ -1,14 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>io.github.sebamutuku</groupId>
     <artifactId>email-service</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <packaging>maven-plugin</packaging>
     <name>EmailService Maven Plugin</name>
     <url>http://maven.apache.org</url>
-    <description>This is a generic email send service which builds a pdf file from bytes array and sends it via mail
+    <description>This is a generic email send service which builds a PDF file from bytes array and sends it via mail
     </description>
     <licenses>
         <license>
@@ -16,6 +16,7 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
     <developers>
         <developer>
             <name>Sebastian Mutuku</name>
@@ -34,14 +35,14 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>javax.mail-api</artifactId>
-            <version>1.6.2</version>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+            <version>2.1.3</version>
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -52,16 +53,15 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version> 2.0.27</version>
+            <version>3.0.5</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.13.1</version>
+                <version>3.15.1</version>
                 <configuration>
                     <goalPrefix>email-service</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
