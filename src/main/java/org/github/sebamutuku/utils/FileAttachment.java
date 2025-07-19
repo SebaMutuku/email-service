@@ -33,13 +33,9 @@ public final class FileAttachment {
                 throw new IOException("Failed to create parent directories");
             }
         }
-
-        // Write the file if it doesn't exist
         if (!file.exists()) {
             writeBase64ToFile(file, content);
         }
-
-        // Process the PDF document
         processPDFDocument(file, password);
 
         return file;
@@ -53,9 +49,9 @@ public final class FileAttachment {
             throw new IllegalArgumentException("Invalid Base64 content", e);
         }
 
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(decodedContent);
-            fos.flush();
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            fileOutputStream.write(decodedContent);
+            fileOutputStream.flush();
         }
 
         // Set file permissions after creation
