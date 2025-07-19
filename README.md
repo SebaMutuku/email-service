@@ -77,12 +77,4 @@ To build the project, run:
 mvn clean install
 ```
 # License
-## Apache 2.0
-To create the file:
-
-1. Copy all the text above
-2. Create a new file named `README.md`
-3. Paste the content
-4. Save the file
-
-The file is now ready to use with your project. The formatting will render properly on GitHub or any other Markdown viewer.
+Apache 2.0
