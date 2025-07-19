@@ -1,20 +1,88 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Email Service Maven Plugin
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+![Maven Central](https://img.shields.io/maven-central/v/io.github.sebamutuku/email-service?color=blue)
+![License](https://img.shields.io/badge/license-Apache%202.0-green)
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+A Maven plugin for sending emails with PDF attachments generated from byte arrays.
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+## Features
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+- Send emails with attachments via SMTP
+- Generate PDF files from Base64 encoded content
+- Password-protect PDF attachments
+- Attach multiple files from a directory
+- Configurable SMTP settings
+- Automatic cleanup of temporary files
+
+## Installation
+
+Add the plugin to your project's `pom.xml`:
+
+```xml
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.github.sebamutuku</groupId>
+            <artifactId>email-service</artifactId>
+            <version>${version}</version>
+        </plugin>
+    </plugins>
+</build>
+```
+# Usage
+## Basic Configuration
+
+```xml
+
+<configuration>
+    <host>smtp.example.com</host>
+    <port>587</port>
+    <username>your-email@example.com</username>
+    <password>your-password</password>
+    <tlsEnabled>true</tlsEnabled>
+    <debugEnabled>false</debugEnabled>
+    <authEnabled>true</authEnabled>
+</configuration>
+```
+
+## Sending Emails
+
+```java
+import io.github.sebamutuku.emailservice.SendMail;
+import io.github.sebamutuku.emailservice.MailParams;
+import java.util.Arrays;
+MailParams params = new MailParams();
+params.setFrom("sender@example.com");
+params.setTo("recipient@example.com");
+params.setSubject("Test Email");
+params.setBody("Email content");
+params.setFileName("document.pdf");
+params.setFileContent("Base64EncodedPDFContent");
+params.setEncodingPasscode("pdfpassword");
+params.setCc(Arrays.asList("cc1@example.com", "cc2@example.com"));
+
+SendMail sendMail = new SendMail(
+    "smtp.example.com", 587, 
+    "username", "password", 
+    "true", "false", "true", true);
+sendMail.sendMail(params);
+
+```
+
+## Building
+To build the project, run:
+
+```bash
+mvn clean install
+```
+# License
+## Apache 2.0
+To create the file:
+
+1. Copy all the text above
+2. Create a new file named `README.md`
+3. Paste the content
+4. Save the file
+
+The file is now ready to use with your project. The formatting will render properly on GitHub or any other Markdown viewer.
