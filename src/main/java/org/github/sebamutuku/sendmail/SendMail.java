@@ -15,16 +15,16 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import lombok.NonNull;
+import org.github.sebamutuku.base.BaseMail;
+import org.github.sebamutuku.utils.FileAttachment;
+import org.github.sebamutuku.utils.MailParams;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import lombok.NonNull;
-import org.github.sebamutuku.base.BaseMail;
-import org.github.sebamutuku.utils.FileAttachment;
-import org.github.sebamutuku.utils.MailParams;
 
 public final class SendMail extends BaseMail {
     private static final String SMTP_PROTOCOL = "smtp";
