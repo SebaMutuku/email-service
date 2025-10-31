@@ -116,7 +116,7 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <keyname>0x77E6EBF8</keyname>
+                            <keyname>0xCD93C9D482DB003B</keyname>
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
