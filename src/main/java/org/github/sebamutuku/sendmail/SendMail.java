@@ -2,23 +2,13 @@ package org.github.sebamutuku.sendmail;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.FileDataSource;
-import jakarta.mail.Address;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
 import lombok.NonNull;
 import org.github.sebamutuku.base.BaseMail;
 import org.github.sebamutuku.utils.FileAttachment;
 import org.github.sebamutuku.utils.MailParams;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -40,7 +30,6 @@ public final class SendMail extends BaseMail {
         this.emailUsername = Objects.requireNonNull(emailUsername, "Email username cannot be null");
         this.emailPassword = Objects.requireNonNull(emailPassword, "Email password cannot be null");
         this.authenticationEnabled = authenticationEnabled;
-
         this.mailProperties = new Properties();
         mailProperties.setProperty("mail.smtp.host", Objects.requireNonNull(host, "SMTP host cannot be null"));
         mailProperties.setProperty("mail.smtp.port", String.valueOf(port));
@@ -53,23 +42,18 @@ public final class SendMail extends BaseMail {
     @Override
     public void sendMail(@NonNull MailParams mailParams) {
         validateMailParams(mailParams);
-
         File pdfFile = null;
         try {
             MimeMessage message = createAuthenticatedMessage();
             configureBasicMessageProperties(message, mailParams);
-
             Multipart multipart = new MimeMultipart();
             multipart.addBodyPart(createTextBodyPart(mailParams.body));
-
             if (mailParams.fileContent != null && mailParams.fileName != null) {
                 pdfFile = handleAttachment(mailParams, multipart);
             }
-
             message.setContent(multipart);
             addCcRecipients(message, mailParams.cc);
             setReplyToRecipients(message);
-
             Transport.send(message);
             cleanUpTempFile(pdfFile);
 
@@ -80,23 +64,19 @@ public final class SendMail extends BaseMail {
 
     @Override
     public void sendMail(@NonNull String from, String filesDirectory, String recipient, String subject, String body, List<String> cc, boolean deleteFilesAfterSending) {
-        validateParameters(from, recipient, subject, body);
+        validateParameters(from, recipient, subject);
 
         try {
             MimeMessage message = createAuthenticatedMessage();
             configureBasicMessageProperties(message, from, recipient, subject);
-
             Multipart multipart = new MimeMultipart();
             multipart.addBodyPart(createTextBodyPart(body));
-
             if (filesDirectory != null) {
                 handleDirectoryAttachments(filesDirectory, multipart, deleteFilesAfterSending);
             }
-
             message.setContent(multipart);
             addCcRecipients(message, cc);
             setReplyToRecipients(message);
-
             Transport.send(message);
         } catch (MessagingException | IOException e) {
             throw new EmailException("Failed to send email", e);
@@ -183,7 +163,6 @@ public final class SendMail extends BaseMail {
                     throw new EmailAddressException("Invalid CC email address: " + email, e);
                 }
             }).toArray(InternetAddress[]::new);
-
             if (addresses.length > 0) {
                 message.addRecipients(Message.RecipientType.CC, addresses);
             }
@@ -201,9 +180,10 @@ public final class SendMail extends BaseMail {
         if (file != null && file.exists()) {
             if (file.delete()) {
                 System.out.println("Deleted temporary file: " + file.getName());
-            } else {
-                System.err.println("Failed to delete temporary file: " + file.getName());
+                return;
             }
+            System.err.println("Failed to delete temporary file: " + file.getName());
+
         }
     }
 
@@ -225,11 +205,10 @@ public final class SendMail extends BaseMail {
         }
     }
 
-    private void validateParameters(String from, String recipient, String subject, String body) {
+    private void validateParameters(String from, String recipient, String subject) {
         Objects.requireNonNull(from, "From address cannot be null");
         Objects.requireNonNull(recipient, "Recipient address cannot be null");
         Objects.requireNonNull(subject, "Email subject cannot be null");
-
         if (from.trim().isEmpty() || recipient.trim().isEmpty()) {
             throw new IllegalArgumentException("Email addresses cannot be empty");
         }
